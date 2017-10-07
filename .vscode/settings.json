@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "gpmf_mp4reader.h": "c",
+        "stdint.h": "c",
+        "mtquaternions.h": "c"
+    }
+}
