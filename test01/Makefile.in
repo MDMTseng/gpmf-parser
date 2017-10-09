@@ -25,7 +25,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 $(ODIR)/%.opp: %.cpp   $(ESS_TRACK)
 	$(CXX) -c $< $(CFLAGS) -o $@
 $(ODIR)/%.o: %.c  $(ESS_TRACK)
-	$(CXX) -c $< $(CFLAGS) -o $@
+	$(CC) -c $< $(CFLAGS) -o $@
 
 
 .PHONY: clean prepare $(SUB_MAKEFILES) build_objs domake

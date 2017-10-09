@@ -13,7 +13,7 @@
 
 int Extract_META_DATA(GPMF_stream *ms,char *_4CC_Tag,Metadata_Process_CallBack cb,void *param,double time_start,double time_end)
 {
-	if (GPMF_OK != GPMF_FindNext(ms, STR2FOURCC(_4CC_Tag), GPMF_RECURSE_LEVELS) )return;
+	if (GPMF_OK != GPMF_FindNext(ms, STR2FOURCC(_4CC_Tag), GPMF_RECURSE_LEVELS) )return -1;
 	uint32_t key = GPMF_Key(ms);
 	uint32_t samples = GPMF_Repeat(ms);
 	uint32_t elements = GPMF_ElementsInStruct(ms);
