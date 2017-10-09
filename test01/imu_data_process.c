@@ -11,7 +11,7 @@
 #include "mtQuaternions.h"
 
 
-int Extract_META_DATA(GPMF_stream *ms,char *_4CC_Tag,Metadata_Process_CallBack cb,void *param)
+int Extract_META_DATA(GPMF_stream *ms,char *_4CC_Tag,Metadata_Process_CallBack cb,void *param,double time_start,double time_end)
 {
 	if (GPMF_OK != GPMF_FindNext(ms, STR2FOURCC(_4CC_Tag), GPMF_RECURSE_LEVELS) )return;
 	uint32_t key = GPMF_Key(ms);
@@ -69,7 +69,7 @@ int Extract_META_DATA(GPMF_stream *ms,char *_4CC_Tag,Metadata_Process_CallBack c
 
     ptr = tmpbuffer;
     
-    int ret=cb(param,tmpbuffer,samples,elements,0,0);
+    int ret=cb(param,tmpbuffer,samples,elements, time_start, time_end);
     
 	free(tmpbuffer);
 	GPMF_ResetState(ms);
@@ -172,28 +172,44 @@ MTQuaternion mtCreateQuaternionFromEuler(MTVec3D *euler) {
 MTQuaternion TTT={1,{0,0,0}};
 
 
-int GYRO_Process_CallBack(void *param,const void *rawdata,int samples,int elements,float start_s,float stop_s)
+//Front Camera Up      is [2]/Z axis,   Yaw ,heading
+//Front Camera left    is [1]/Y axis    Pitch,attitude
+//Front camera forward is [0]/X axis    Roll,bank
+
+int GYRO_Process_CallBack(void *param,const void *rawdata,int samples,int elements,double start_s,double stop_s)
 {
+	int DataDiv=60*3;
 	if(elements!=3)return -1;
-	MTVec3D angle;
 	int i,j;
-	MTQuaternion intq=Conv2Quaternion(0,0,0);
+	MTQuaternion intq={1,{0,0,0}};
 	double *ptr=rawdata;
 	
-    for (i = 0; i < samples; i++,ptr+=3)
-	{
-		if(i==samples/2)
-		{
-			
-			MTQuaternion nq=Conv2Quaternion(ptr[2],ptr[1],ptr[0]);
-			printf("Raw :  %.3f, %.3f, %.3f\n",ptr[2]*180/M_PI,ptr[1]*180/M_PI,ptr[0]*180/M_PI);
-			printf("RawQ:  %.3f, %.3f, %.3f, %.3f\n", nq.s,nq.v.x,nq.v.y,nq.v.z);
+	double delta_t=(stop_s-start_s)/samples;
 
-		}
-		MTQuaternion nq=Conv2Quaternion(ptr[2]/samples,ptr[1]/samples,ptr[0]/samples);
+	double prog_t_step=(stop_s-start_s)/DataDiv;
+	double prog_t=0;
+    for (i = 0; i < samples; i++,ptr+=3)
+	{//ptr order is [0]=X [1]=Y [2]=Z
+		double Yaw=ptr[2];
+		double Pitch=ptr[1];
+		double Roll=ptr[0];
+		MTQuaternion nq=Conv2Quaternion(Yaw*delta_t,Pitch*delta_t,Roll*delta_t);
 		intq=mtMultMTQuaternionMTQuaternion(&intq,&nq);
+
+		if(prog_t<=i*delta_t)
+		{
+			TTT=mtMultMTQuaternionMTQuaternion(&TTT,&intq);
+			intq=Conv2Quaternion(0,0,0);
+
+			/*MTVec3D euler= mtCreateEulerFromQuaternion(&TTT);
+			printf("Teuler:%f,  %.3f, %.3f, %.3f\n",start_s+prog_t, euler.z*180/M_PI,euler.y*180/M_PI,euler.x*180/M_PI);*/
+			printf("[%f, %f,%f, %f, %f,0],\n",start_s+prog_t,TTT.s,TTT.v.x,TTT.v.y,TTT.v.z);
+			prog_t+=prog_t_step;
+		}
+
+
 	}
-	mtNormMTQuaternion (&intq);
+	/*mtNormMTQuaternion (&intq);
 	MTVec3D euler= mtCreateEulerFromQuaternion(&intq);
 	printf("euler:  %.3f, %.3f, %.3f\n", euler.z*180/M_PI,euler.y*180/M_PI,euler.x*180/M_PI);
 	printf("Quate:  %.3f, %.3f, %.3f, %.3f\n", intq.s,intq.v.x,intq.v.y,intq.v.z);
@@ -202,16 +218,14 @@ int GYRO_Process_CallBack(void *param,const void *rawdata,int samples,int elemen
 	euler= mtCreateEulerFromQuaternion(&TTT);
 
 	printf("Teuler:  %.3f, %.3f, %.3f\n", euler.z*180/M_PI,euler.y*180/M_PI,euler.x*180/M_PI);
-	
-
-
-	//return MataData_Print_CallBack(param,rawdata,samples,elements,start_s,stop_s);
+	*/
+	//printf("time:  %.3f, %.3f\n", start_s,stop_s);
 	return 0;
 }
 
 
 
-int MataData_Print_CallBack(void *param,const void *rawdata,int samples,int elements,float start_s,float stop_s)
+int MataData_Print_CallBack(void *param,const void *rawdata,int samples,int elements,double start_s,double stop_s)
 {
     int i,j;
     double *ptr=rawdata;

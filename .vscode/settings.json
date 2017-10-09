@@ -2,6 +2,7 @@
     "files.associations": {
         "gpmf_mp4reader.h": "c",
         "stdint.h": "c",
-        "mtquaternions.h": "c"
+        "mtquaternions.h": "c",
+        "imu_data_process.h": "c"
     }
 }
