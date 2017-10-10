@@ -129,49 +129,16 @@ MTVec3D Conv2Euler(double w, double x, double y,double z) {//Y,Z,X
 
 
 
-MTVec3D accelToEuler(MTVec3D *accel)
+MTVec3D accelToEuler(const MTVec3D *accel)
 {
     MTVec3D e;
 
-    e.x=(atan2(accel->x, accel->z));
-    e.y=(-atan2(accel->x, sqrt(accel->y * accel->y + accel->z * accel->z));
-    e.z=0;
+    e.x=atan2(accel->y, accel->z);//roll
+    e.y=-atan2(accel->x, hypot(accel->y , accel->z ));//pitch
+    e.z=0;//yaw
 
-		return e;
+	return e;
 }
-
-RTVector3 RTMath::poseFromAccelMag(const RTVector3& accel, const RTVector3& mag)
-{
-    RTVector3 result;
-    MTQuaternion m;
-    MTQuaternion q;
-
-    accel.accelToEuler(result);
-
-//  q.fromEuler(result);
-//  since result.z() is always 0, this can be optimized a little
-
-    RTFLOAT cosX2 = cos(result.x() / 2.0f);
-    RTFLOAT sinX2 = sin(result.x() / 2.0f);
-    RTFLOAT cosY2 = cos(result.y() / 2.0f);
-    RTFLOAT sinY2 = sin(result.y() / 2.0f);
-
-    q.setScalar(cosX2 * cosY2);
-    q.setX(sinX2 * cosY2);
-    q.setY(cosX2 * sinY2);
-    q.setZ(-sinX2 * sinY2);
-//    q.normalize();
-
-    m.setScalar(0);
-    m.setX(mag.x());
-    m.setY(mag.y());
-    m.setZ(mag.z());
-
-    m = q * m * q.conjugate();
-    result.setZ(-atan2(m.y(), m.x()));
-    return result;
-}
-
 
 MTVec3D mtCreateEulerFromQuaternion(MTQuaternion *q) {
     return Conv2Euler(q->s, q->v.x, q->v.y,q->v.z);
@@ -183,6 +150,39 @@ MTQuaternion mtCreateQuaternionFromEuler(MTVec3D *euler) {
 }
 
 MTQuaternion TTT={1,{0,0,0}};
+
+
+
+MTVec3D EulerFromAccelMag(const MTVec3D *accel, const MTVec3D *mag)
+{
+    MTVec3D result;
+    MTQuaternion m;
+    MTQuaternion q; 
+
+    result= accelToEuler(accel);
+//  since result.z() is always 0, this can be optimized a little
+    double cr = cos(result.x/2);//roll
+    double sr = sin(result.x/2);
+    double cp = cos(result.y/2);//pitch
+    double sp = sin(result.y/2);
+
+    q.s=   cr * cp;
+    q.v.x= sr * cp;
+    q.v.y= cr * sp;
+    q.v.z=-sr * sp;
+
+    m.s=(0);
+    m.v.x=mag->x;
+    m.v.y=mag->y;
+    m.v.z=mag->z;
+
+	MTQuaternion qm= mtMultMTQuaternionMTQuaternion(&q,&m);
+	MTQuaternion _q= mtConjugateMTQuaternion(&q);
+
+    m = mtMultMTQuaternionMTQuaternion(&qm,&_q);
+    result.z=-atan2(m.v.y, m.v.x);
+    return result;
+}
 
 
 //Front Camera Up      is [2]/Z axis,   Yaw ,heading
