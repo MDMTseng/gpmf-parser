@@ -35,7 +35,7 @@ int Extract_META_DATA(GPMF_stream *ms,char *_4CC_Tag,Metadata_Process_CallBack c
 	}
 
 
-	
+
 	uint32_t i, j;
 
 	//Search for any units to display
@@ -63,14 +63,14 @@ int Extract_META_DATA(GPMF_stream *ms,char *_4CC_Tag,Metadata_Process_CallBack c
 
 
 	}
-	
+
 	//GPMF_FormattedData(ms, tmpbuffer, buffersize, 0, samples); // Output data in LittleEnd, but no scale
 	GPMF_ScaledData(ms, tmpbuffer, buffersize, 0, samples, GPMF_TYPE_DOUBLE);  //Output scaled data as floats
 
     ptr = tmpbuffer;
-    
+
     int ret=cb(param,tmpbuffer,samples,elements, time_start, time_end);
-    
+
 	free(tmpbuffer);
 	GPMF_ResetState(ms);
 	return ret;
@@ -80,7 +80,7 @@ int Extract_META_DATA(GPMF_stream *ms,char *_4CC_Tag,Metadata_Process_CallBack c
 //Front Camera left    is [1]/Y axis    Pitch,attitude
 //Front camera forward is [0]/X axis    Roll,bank
 
-//Yaw: theta, yaw 
+//Yaw: theta, yaw
 //Pitch:phi  , pitch
 //Roll:    psi  , roll
 //Rotation direction, right handed XYZ, along axis toward outside counter clock-wise is positive
@@ -100,7 +100,7 @@ MTQuaternion Conv2Quaternion(double Yaw, double Pitch, double Roll) {
 	q.v.x = cy * sr * cp - sy * cr * sp;
 	q.v.y = cy * cr * sp + sy * sr * cp;
 	q.v.z = sy * cr * cp - cy * sr * sp;
-	
+
 	return q;
 }
 
@@ -122,16 +122,29 @@ MTVec3D Conv2Euler(double w, double x, double y,double z) {//Y,Z,X
 
 	// yaw (z-axis rotation)
 	double siny = +2.0 * (w * z + x * y);
-	double cosy = +1.0 - 2.0 * (y * y + z * z);  
+	double cosy = +1.0 - 2.0 * (y * y + z * z);
 	e.z = atan2(siny, cosy);
 	return e;
 }
-/*
+
+
+
+MTVec3D accelToEuler(MTVec3D *accel)
+{
+    MTVec3D e;
+
+    e.x=(atan2(accel->x, accel->z));
+    e.y=(-atan2(accel->x, sqrt(accel->y * accel->y + accel->z * accel->z));
+    e.z=0;
+
+		return e;
+}
+
 RTVector3 RTMath::poseFromAccelMag(const RTVector3& accel, const RTVector3& mag)
 {
     RTVector3 result;
-    RTQuaternion m;
-    RTQuaternion q;
+    MTQuaternion m;
+    MTQuaternion q;
 
     accel.accelToEuler(result);
 
@@ -158,7 +171,7 @@ RTVector3 RTMath::poseFromAccelMag(const RTVector3& accel, const RTVector3& mag)
     result.setZ(-atan2(m.y(), m.x()));
     return result;
 }
-*/
+
 
 MTVec3D mtCreateEulerFromQuaternion(MTQuaternion *q) {
     return Conv2Euler(q->s, q->v.x, q->v.y,q->v.z);
@@ -183,12 +196,12 @@ int GYRO_Process_CallBack(void *param,const void *rawdata,int samples,int elemen
 	int i,j;
 	MTQuaternion intq={1,{0,0,0}};
 	double *ptr=rawdata;
-	
+
 	double delta_t=(stop_s-start_s)/samples;
 
 	double prog_t_step=(stop_s-start_s)/DataDiv;
 	double prog_t=0;
-    for (i = 0; i < samples; i++,ptr+=3)
+  for (i = 0; i < samples; i++,ptr+=3)
 	{//ptr order is [0]=X [1]=Y [2]=Z
 		double Yaw=ptr[2];
 		double Pitch=ptr[1];

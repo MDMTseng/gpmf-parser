@@ -159,21 +159,21 @@ int main(int argc, char *argv[])
 				printf("\n");
 			}
 #endif 
-			if(index==0)
+			//if(index==0)
 			{
 				//Print_DATA(ms,"GYRO");
 				//Print_DATA(ms,"ACCL");
 				//Print_DATA(ms,"MAGN");
 				//Extract_GYRO_DATA(ms);
 				//printf("GYRO>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
-				//Extract_META_DATA(ms,"GYRO",GYRO_Process_CallBack,NULL,in,out);
+				Extract_META_DATA(ms,"GYRO",GYRO_Process_CallBack,NULL,in,out);
 
-				printf("MAGN>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+				/*printf("MAGN>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 				Extract_META_DATA(ms,"MAGN",MataData_Print_CallBack,NULL,in,out);
 
 				printf("ACCL>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 				Extract_META_DATA(ms,"ACCL",MataData_Print_CallBack,NULL,in,out);
-				//printf("SHUT>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+				*///printf("SHUT>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 				//Extract_META_DATA(ms,"SHUT",MataData_Print_CallBack,NULL,in,out);
 			}
 		}
