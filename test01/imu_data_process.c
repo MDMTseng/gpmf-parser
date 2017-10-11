@@ -243,11 +243,65 @@ int MataData_Print_CallBack(void *param,const void *rawdata,int samples,int elem
     int i,j;
     double *ptr=rawdata;
     for (i = 0; i < samples; i++)
-	{
+		{
+			for (j = 0; j < elements; j++)
+				printf("%.3f, ", *ptr++);
+
+			printf("\n");
+		}
+    return 0;
+}
+
+
+
+int MataData_Print_Middle_CallBack(void *param,const void *rawdata,int samples,int elements,double start_s,double stop_s)
+{
+    int i,j;
+    double *ptr=rawdata;
+		ptr+=elements*(samples/2);
+
+		printf("%.3f:", start_s);
 		for (j = 0; j < elements; j++)
 			printf("%.3f, ", *ptr++);
 
 		printf("\n");
-	}
+
     return 0;
+}
+
+
+
+
+int ACCL_Euler_CallBack(void *param,const void *rawdata,int samples,int elements,double start_s,double stop_s)
+{
+
+		if(elements!=3)return -1;
+		int i,j;
+		double *ptr=rawdata;
+
+		printf("%.3f:\n", start_s);
+		double delta_t=(stop_s-start_s)/samples;
+		double prog_t=0;
+	  for (i = 0; i < samples; i++,ptr+=3)
+		{//ptr order is [0]=Z [1]=X [2]=Y
+			MTVec3D accl={.x=ptr[0],.y=ptr[1],.z=ptr[2]};
+			MTVec3D euler = accelToEuler(&accl);
+
+			printf("accl :  %.3f, %.3f, %.3f\n", accl.x,accl.y,accl.z);
+			printf("euler:  %.3f, %.3f, %.3f\n", euler.x*180/M_PI,euler.y*180/M_PI,euler.z*180/M_PI);
+			//printf("euler:  %.3f, %.3f, %.3f\n", euler.x*180/M_PI,euler.y*180/M_PI,euler.z*180/M_PI);
+			//break;
+		}
+		/*mtNormMTQuaternion (&intq);
+		MTVec3D euler= mtCreateEulerFromQuaternion(&intq);
+		printf("euler:  %.3f, %.3f, %.3f\n", euler.z*180/M_PI,euler.y*180/M_PI,euler.x*180/M_PI);
+		printf("Quate:  %.3f, %.3f, %.3f, %.3f\n", intq.s,intq.v.x,intq.v.y,intq.v.z);
+
+		TTT=mtMultMTQuaternionMTQuaternion(&TTT,&intq);
+		euler= mtCreateEulerFromQuaternion(&TTT);
+
+		printf("Teuler:  %.3f, %.3f, %.3f\n", euler.z*180/M_PI,euler.y*180/M_PI,euler.x*180/M_PI);
+		*/
+		//printf("time:  %.3f, %.3f\n", start_s,stop_s);
+		return 0;
 }
